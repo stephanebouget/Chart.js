@@ -63,7 +63,15 @@ function computeFitCategoryTraits(index, ruler, options, stackCount) {
   let size, ratio;
 
   if (isNullOrUndef(thickness)) {
-    size = ruler.min * options.categoryPercentage;
+    if (options._context.dataset.setPercentage) {
+      size = ruler.normalSize * options.categoryPercentage;
+      const normalSize = ruler.normalSize;
+      const totalSize = normalSize * options._context.dataset.setPercentage.length;
+      const percent = options._context.dataset.setPercentage[index];
+      size = percent * totalSize / 100;
+    } else {
+      size = ruler.min * options.categoryPercentage;
+    }
     ratio = options.barPercentage;
   } else {
     // When bar thickness is enforced, category and bar percentages are ignored.
@@ -469,15 +477,34 @@ export default class BarController extends DatasetController {
     const opts = this.options;
     const meta = this._cachedMeta;
     const iScale = meta.iScale;
-    const pixels = [];
+    let pixels = [];
     let i, ilen;
+    let normalSize;
+    let sizes = [];
 
     for (i = 0, ilen = meta.data.length; i < ilen; ++i) {
       pixels.push(iScale.getPixelForValue(this.getParsed(i)[iScale.axis], i));
     }
 
     const barThickness = opts.barThickness;
-    const min = barThickness || computeMinSampleSize(meta);
+    let min = barThickness || computeMinSampleSize(meta);
+
+    if (opts._context.dataset.setPercentage) {
+      const totalSize = this._cachedMeta.iScale._endPixel;
+      normalSize = totalSize / opts._context.dataset.setPercentage.length;
+      for (i = 0, ilen = pixels.length; i < ilen; ++i) {
+        const percent = opts._context.dataset.setPercentage[i];
+        const size = percent * totalSize / 100;
+        sizes.push(size);
+        if (i === 0) {
+          pixels[i] = size * 2;
+        } else {
+          pixels[i] = size + pixels[i - 1];
+        }
+      }
+      min = totalSize / 100;
+    }
+
 
     return {
       min,
@@ -488,7 +515,9 @@ export default class BarController extends DatasetController {
       scale: iScale,
       grouped: opts.grouped,
       // bar thickness ratio used for non-grouped bars
-      ratio: barThickness ? 1 : opts.categoryPercentage * opts.barPercentage
+      ratio: barThickness ? 1 : opts.categoryPercentage * opts.barPercentage,
+      normalSize: normalSize,
+      sizes: sizes
     };
   }
 
@@ -579,6 +608,18 @@ export default class BarController extends DatasetController {
       const stackIndex = this._getStackIndex(this.index, this._cachedMeta.stack, skipNull ? index : undefined);
       center = range.start + (range.chunk * stackIndex) + (range.chunk / 2);
       size = Math.min(maxBarThickness, range.chunk * range.ratio);
+
+      if (options._context.dataset.setPercentage) {
+        if (index === 0) {
+          center = ruler.sizes[index] + ruler.start;
+        } else {
+          center = ruler.sizes[index] / 2 + ruler.pixels[index - 1] + ruler.start - ruler.sizes[0] / 2;
+        }
+        const totalSize = this._cachedMeta.iScale._endPixel;
+        const percent = options._context.dataset.setPercentage[index];
+        size = percent * totalSize / 100;
+      }
+
     } else {
       // For non-grouped bar charts, exact pixel values are used
       center = scale.getPixelForValue(this.getParsed(index)[scale.axis], index);
