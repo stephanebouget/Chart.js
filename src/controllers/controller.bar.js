@@ -65,8 +65,7 @@ function computeFitCategoryTraits(index, ruler, options, stackCount) {
   if (isNullOrUndef(thickness)) {
     if (options._context.dataset.setPercentage) {
       size = ruler.normalSize * options.categoryPercentage;
-      const normalSize = ruler.normalSize;
-      const totalSize = normalSize * options._context.dataset.setPercentage.length;
+      const totalSize = ruler.normalSize * options._context.dataset.setPercentage.length;
       const percent = options._context.dataset.setPercentage[index];
       size = percent * totalSize / 100;
     } else {
@@ -481,7 +480,7 @@ export default class BarController extends DatasetController {
     let i, ilen;
     let normalSize;
     let sizes = [];
-
+    let totalSize;
     for (i = 0, ilen = meta.data.length; i < ilen; ++i) {
       pixels.push(iScale.getPixelForValue(this.getParsed(i)[iScale.axis], i));
     }
@@ -490,8 +489,8 @@ export default class BarController extends DatasetController {
     let min = barThickness || computeMinSampleSize(meta);
 
     if (opts._context.dataset.setPercentage) {
-      const totalSize = this._cachedMeta.iScale._endPixel;
-      normalSize = totalSize / opts._context.dataset.setPercentage.length;
+      totalSize = pixels[pixels.length - 1] - this._cachedMeta.iScale._startPixel * 2;
+      normalSize = pixels[0];
       for (i = 0, ilen = pixels.length; i < ilen; ++i) {
         const percent = opts._context.dataset.setPercentage[i];
         const size = percent * totalSize / 100;
@@ -505,7 +504,6 @@ export default class BarController extends DatasetController {
       min = totalSize / 100;
     }
 
-
     return {
       min,
       pixels,
@@ -517,6 +515,7 @@ export default class BarController extends DatasetController {
       // bar thickness ratio used for non-grouped bars
       ratio: barThickness ? 1 : opts.categoryPercentage * opts.barPercentage,
       normalSize: normalSize,
+      totalSize: totalSize,
       sizes: sizes
     };
   }
@@ -615,9 +614,8 @@ export default class BarController extends DatasetController {
         } else {
           center = ruler.sizes[index] / 2 + ruler.pixels[index - 1] + ruler.start - ruler.sizes[0] / 2;
         }
-        const totalSize = this._cachedMeta.iScale._endPixel;
         const percent = options._context.dataset.setPercentage[index];
-        size = percent * totalSize / 100;
+        size = percent * ruler.totalSize / 100;
       }
 
     } else {
