@@ -1,6 +1,5 @@
 {
-    "name": "chart.js",
-    "homepage": "https://www.chartjs.org",
+    "name": "stephanebouget.chart.js",
     "description": "Simple HTML5 charts using the canvas element.",
     "version": "3.9.1",
     "license": "MIT",
@@ -19,10 +18,10 @@
     ],
     "repository": {
         "type": "git",
-        "url": "https://github.com/chartjs/Chart.js.git"
+        "url": "https://github.com/stephanebouget/Chart.js.git"
     },
     "bugs": {
-        "url": "https://github.com/chartjs/Chart.js/issues"
+        "url": "https://github.com/stephanebouget/Chart.js/issues"
     },
     "files": [
         "auto/**",
