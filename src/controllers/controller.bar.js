@@ -356,6 +356,7 @@ export default class BarController extends DatasetController {
     this.updateElements(meta.data, 0, meta.data.length, mode);
   }
 
+  // eslint-disable-next-line complexity
   updateElements(bars, start, count, mode) {
     const reset = mode === 'reset';
     const {index, _cachedMeta: {vScale}} = this;
@@ -477,6 +478,7 @@ export default class BarController extends DatasetController {
     const meta = this._cachedMeta;
     const iScale = meta.iScale;
     let pixels = [];
+    let newPixels = [];
     let i, ilen;
     let normalSize;
     let sizes = [];
@@ -489,19 +491,20 @@ export default class BarController extends DatasetController {
     let min = barThickness || computeMinSampleSize(meta);
 
     if (opts._context.dataset.setPercentage) {
-      totalSize = pixels[pixels.length - 1] - this._cachedMeta.iScale._startPixel * 2;
+      totalSize = iScale._endPixel - iScale._startPixel; // dynamic ok
       normalSize = pixels[0];
       for (i = 0, ilen = pixels.length; i < ilen; ++i) {
         const percent = opts._context.dataset.setPercentage[i];
         const size = percent * totalSize / 100;
         sizes.push(size);
         if (i === 0) {
-          pixels[i] = size * 2;
+          newPixels[i] = size;
         } else {
-          pixels[i] = size + pixels[i - 1];
+          newPixels[i] = size + newPixels[i - 1];
         }
       }
       min = totalSize / 100;
+      pixels = newPixels;
     }
 
     return {
@@ -514,9 +517,9 @@ export default class BarController extends DatasetController {
       grouped: opts.grouped,
       // bar thickness ratio used for non-grouped bars
       ratio: barThickness ? 1 : opts.categoryPercentage * opts.barPercentage,
-      normalSize: normalSize,
-      totalSize: totalSize,
-      sizes: sizes
+      normalSize,
+      totalSize,
+      sizes
     };
   }
 
@@ -524,6 +527,7 @@ export default class BarController extends DatasetController {
 	 * Note: pixel values are not clamped to the scale area.
 	 * @private
 	 */
+  // eslint-disable-next-line max-statements, complexity
   _calculateBarValuePixels(index) {
     const {_cachedMeta: {vScale, _stacked}, options: {base: baseValue, minBarLength}} = this;
     const actualBase = baseValue || 0;
@@ -610,9 +614,9 @@ export default class BarController extends DatasetController {
 
       if (options._context.dataset.setPercentage) {
         if (index === 0) {
-          center = ruler.sizes[index] + ruler.start;
+          center = ruler.sizes[index] / 2 + ruler.start;
         } else {
-          center = ruler.sizes[index] / 2 + ruler.pixels[index - 1] + ruler.start - ruler.sizes[0] / 2;
+          center = ruler.sizes[index] / 2 + ruler.pixels[index - 1] + ruler.start;
         }
         const percent = options._context.dataset.setPercentage[index];
         size = percent * ruler.totalSize / 100;
