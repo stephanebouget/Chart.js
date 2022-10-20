@@ -1,38 +1,67 @@
-<p align="center">
-  <a href="https://www.chartjs.org/" target="_blank">
-    <img src="https://www.chartjs.org/media/logo-title.svg" alt="https://www.chartjs.org/"><br/>
-  </a>
-    Simple yet flexible JavaScript charting for designers & developers
-</p>
 
-<p align="center">
-    <a href="https://www.chartjs.org/docs/latest/getting-started/installation.html"><img src="https://img.shields.io/github/release/chartjs/Chart.js.svg?style=flat-square&maxAge=600" alt="Downloads"></a>
-    <a href="https://github.com/chartjs/Chart.js/actions?query=workflow%3ACI+branch%3Amaster"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/chartjs/Chart.js/CI"></a>
-    <a href="https://coveralls.io/github/chartjs/Chart.js?branch=master"><img src="https://img.shields.io/coveralls/chartjs/Chart.js.svg?style=flat-square&maxAge=600" alt="Coverage"></a>
-    <a href="https://github.com/chartjs/awesome"><img src="https://awesome.re/badge-flat2.svg" alt="Awesome"></a>
-    <a href="https://chartjs-slack.herokuapp.com/"><img src="https://img.shields.io/badge/slack-chartjs-blue.svg?style=flat-square&maxAge=3600" alt="Slack"></a>
-</p>
+## Fork of Chart.js 3.9.1 to draw histograms with dynamic sizes
 
-## Documentation
+**Checkout the 3.9 branch !**
 
-All the links point to the new version 3 of the lib.
+### For instance : 
+![image](https://user-images.githubusercontent.com/13203455/196981598-a880ea66-9ef6-4064-8a2a-45e4b255ccef.png)
 
-* [Introduction](https://www.chartjs.org/docs/latest/)
-* [Getting Started](https://www.chartjs.org/docs/latest/getting-started/index)
-* [General](https://www.chartjs.org/docs/latest/general/data-structures)
-* [Configuration](https://www.chartjs.org/docs/latest/configuration/index)
-* [Charts](https://www.chartjs.org/docs/latest/charts/line)
-* [Axes](https://www.chartjs.org/docs/latest/axes/index)
-* [Developers](https://www.chartjs.org/docs/latest/developers/index)
-* [Popular Extensions](https://github.com/chartjs/awesome)
-* [Samples](https://www.chartjs.org/samples/)
+### Instead of :
+![image](https://user-images.githubusercontent.com/13203455/196995554-8afad4b6-56c6-4257-a265-e1ca289eba8a.png)
 
-In case you are looking for the docs of version 2, you will have to specify the specific version in the url like this: [https://www.chartjs.org/docs/2.9.4/](https://www.chartjs.org/docs/2.9.4/)
 
-## Contributing
+## Example
+(See example/index.html)
 
-Instructions on building and testing Chart.js can be found in [the documentation](https://www.chartjs.org/docs/master/developers/contributing.html#building-and-testing). Before submitting an issue or a pull request, please take a moment to look over the [contributing guidelines](https://www.chartjs.org/docs/master/developers/contributing) first. For support, please post questions on [Stack Overflow](https://stackoverflow.com/questions/tagged/chart.js) with the `chart.js` tag.
+Just add a **setPercentage** array with percentages to the dataset to enable the dynamic width histogram
 
-## License
+```js
 
-Chart.js is available under the [MIT license](LICENSE.md).
+  var data = {
+    datasets: [{
+      label: 'Dataset #1',
+      backgroundColor: 'rgba(255,99,132,0.2)',
+      borderColor: 'rgba(255,99,132,1)',
+      borderWidth: 2,
+      data: [65, 59, 20, 81, 56, 55, 40],
+      setPercentage: [10, 2, 20, 40, 4, 6, 18], // Here is the magic !!
+    }],
+  };
+
+  var options = {
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        stacked: true,
+        grid: {
+          display: true,
+          color: 'rgba(255,99,132,0.2)',
+        },
+      },
+      x: {
+        grid: {
+          display: false,
+        },
+        ticks: {
+          callback: function (value, index, e) {
+            if (!data.datasets[0].setPercentage) {
+              // Default chartjs
+              return index % 2 === 0 ? this.getLabelForValue(value) : '';
+            } else {
+              // Here you can customize x labels
+            }
+          }
+        }
+      }
+    }
+  };
+
+  window.addEventListener('load', function () {
+    new Chart('chart', {
+      type: 'bar',
+      options: options,
+      data: data,
+    });
+  }, false);
+  
+```
