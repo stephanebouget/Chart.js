@@ -620,6 +620,9 @@ export default class BarController extends DatasetController {
         }
         const percent = options._context.dataset.setPercentage[index];
         size = percent * ruler.totalSize / 100;
+        if (size < 3) {
+          size = 3;
+        }
       }
 
     } else {
